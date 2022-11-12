@@ -1,4 +1,5 @@
 #-*- coding:utf-8 -*-
+#传教士(野人)的数量，船的载重
 num,boat_load=0,0
 
 class State:
@@ -33,8 +34,12 @@ class Node:
 
     def estimate(self,node):
         #估价函数f*(n)=g*(n)+h*(n)
-        #估价函数f = step + m + c - b*boat_load
-        return node.step+node.state.m+node.state.c-node.state.b*boat_load
+        #起始岸 f = step + 2*(m + c - b)/(boat_load-1) + 1
+        #目标岸 f = step + 2*(m + c + 1 - b)/(boat_load-1) + 2
+        if node.state.b == 1:
+            return node.step+2*(node.state.m+node.state.c-boat_load)/(boat_load-1)+1
+        else:
+            return node.step+2*(node.state.m+node.state.c+1-boat_load)/(boat_load-1)+2
 
     def is_safe(self):
         #是否是合法状态
@@ -45,12 +50,12 @@ class Node:
         else:
             return False
 
-    def is_exist(self,open,closed):
+    def is_exist(self,open,close):
         #是否已经有这个状态
         for node in open:
             if self.state == node.state:
                 return False
-        for node in closed:
+        for node in close:
             if self.state == node.state:
                 return False
         return True
@@ -68,14 +73,14 @@ def solution(num,boat_load):
     start_node=Node(State(num,num,1),0,None)
     open=[start_node]
     goal_state=State(0,0,0)
-    closed=[]
+    close=[]
     #循环直到找到目标状态或者open表为空
     while True:
         if not open:
             print('失败')
             break
         node=open.pop(0)
-        closed.append(node)
+        close.append(node)
         state=node.state
         if node.state==goal_state:
             #success
@@ -86,7 +91,7 @@ def solution(num,boat_load):
             #船上全是野人
             for c in range(1,min(boat_load,state.c)+1):
                 new_node=Node(State(state.m,state.c-c,1-state.b),node.step+1,node)
-                if new_node.is_safe() and new_node.is_exist(open,closed):
+                if new_node.is_safe() and new_node.is_exist(open,close):
                     open.append(new_node)
             #船上全是传教士或者既有传教士又有野人
             for m in range(1,min(boat_load,state.m)+1):
@@ -94,14 +99,14 @@ def solution(num,boat_load):
                     if m+c>boat_load :
                         break
                     new_node=Node(State(state.m-m,state.c-c,1-state.b),node.step+1,node)
-                    if new_node.is_safe() and new_node.is_exist(open,closed):
+                    if new_node.is_safe() and new_node.is_exist(open,close):
                         open.append(new_node)
         elif node.state.b==0:
             #如果船在目标岸
             #船上全是野人
             for c in range(1,min(boat_load,num-state.c)+1):
                 new_node=Node(State(state.m,state.c+c,1-state.b),node.step+1,node)
-                if new_node.is_safe() and new_node.is_exist(open,closed):
+                if new_node.is_safe() and new_node.is_exist(open,close):
                     open.append(new_node)
             #船上全是传教士或者既有传教士又有野人
             for m in range(1,min(boat_load,num-state.m)+1):
@@ -109,7 +114,7 @@ def solution(num,boat_load):
                     if(m+c>boat_load):
                         break
                     new_node=Node(State(state.m+m,state.c+c,1-state.b),node.step+1,node)
-                    if new_node.is_safe() and new_node.is_exist(open,closed):
+                    if new_node.is_safe() and new_node.is_exist(open,close):
                         open.append(new_node)
         #根据估价函数进行排序
         open.sort()
