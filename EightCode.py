@@ -22,11 +22,12 @@ class Node:
 
     def __str__(self):
         #便于输出节点状态
-        out_str='第%2d步:\n'%(self.step)
+        out_str='**第%d步**\n'%(self.step)
         out_str+=str(self.code[0])+'\n'+str(self.code[1])+'\n'+str(self.code[2])+'\n'
         return out_str
 
     def possible_child(self):
+        #可能的子节点状态
         res=[]
         for x,y in [(0,1),(0,-1),(1,0),(-1,0)]:
             if self.x+x>=0 and self.x+x<3 and self.y+y>=0 and self.y+y<3:
@@ -40,16 +41,18 @@ class Node:
         return res
 
 def estimate(node):
-    #估价函数f*(n)=g*(n)+h*(n)
-    #已走步数加9减相同数字个数
-    same_nums=0
+    '''估价函数f*(n)=g*(n)+h*(n)
+    已走步数加错误位置数字个数'''
+    unsame_nums=0
     for i in range(0,3):
         for j in range(0,3):
-            if node.code[i][j]==goal[i][j]:
-                same_nums+=1
-    return node.step-same_nums+9
+            if node.code[i][j]!=goal[i][j] and node.code[i][j]!=0:
+                unsame_nums+=1
+    return node.step+unsame_nums
 
 def solution(start):
+    '''开始求解'''
+    #首先找到空位置
     x,y=0,0
     for i in range(0,3):
         for j in range(0,3):
@@ -78,7 +81,7 @@ def solution(start):
         
 def output_steps(node):
     '''输出转移过程'''
-    print('共进行了%d步'%(node.step))
+    print('共进行了%d步\n'%(node.step))
     steps=[]
     while node.parent!=None:
         steps.append(node)
@@ -89,10 +92,10 @@ def output_steps(node):
 
 if __name__=='__main__':
     start,end=[],[]
-    print('输入初始状态')
+    print('输入初始状态，分三行输入：')
     for i in range(0,3):
         start.append([int(i) for i in input().split()])
-    print('输入目标状态')
+    print('输入目标状态，分三行输入：')
     for i in range(0,3):
         end.append([int(i) for i in input().split()])
     goal=end
